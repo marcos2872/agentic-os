@@ -1,0 +1,1 @@
+{"KPackageStructure":"Plasma/Applet","KPlugin":{"Authors":[{"Email":"","Name":"Agentic OS"}],"Category":"Utilities","Description":"Carousel de apps glass (render_app_card)","EnabledByDefault":true,"Id":"com.agenticos.appcarousel","License":"MIT","Name":"App Carousel","Version":"1.0"},"X-Plasma-API-Minimum-Version":"6.0"}
