@@ -93,6 +93,21 @@ Depois:
 
 Para remover: `setup/uninstall.sh [--keep-config]`.
 
+### Atualizando uma instalação existente
+
+```bash
+cd ~/agentic-os && git pull        # (ou re-copie o repo para dentro da VM)
+./setup/install.sh                 # idempotente: atualiza daemon, extensão, skills e launcher
+```
+
+O instalador reinicia o `agenticd`; para a sessão do pi já aberta, rode `/reload`
+dentro do chat (recarrega extensão e skills). Para conferir a versão:
+
+```bash
+agenticctl tools --json | grep -o 'widget.scaffold'      # ferramenta nova presente?
+ls ~/.pi/agent/skills | grep '^agenticos-'               # 6 skills
+```
+
 ## CLI (sem o chat)
 
 O mesmo daemon pode ser usado direto:
