@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Agentic OS
+Comment=Chat de IA que controla o sistema (guardrails)
+Exec=agentic-os-chat
+Icon=utilities-terminal
+Terminal=true
+Categories=System;Utility;TerminalEmulator;
+StartupNotify=true

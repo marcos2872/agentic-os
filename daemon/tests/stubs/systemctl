@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+"""Stub de systemctl --user para testes."""
+import os
+import sys
+
+args = sys.argv[1:]
+log = os.environ.get("AGENTICOS_STUB_LOG")
+if log:
+    with open(log, "a", encoding="utf-8") as handle:
+        handle.write("systemctl " + " ".join(args) + "\n")
+
+if "is-active" in args:
+    print("active")
+elif "is-enabled" in args:
+    print("enabled")
+elif "show" in args:
+    print("ActiveState=active")
+    print("UnitFileState=enabled")
+    print("Description=stub unit")
+elif "list-timers" in args:
+    print("Sun 2026-10-18 13:00:00 -03  1h left  agenticos-stub.timer")
+sys.exit(0)

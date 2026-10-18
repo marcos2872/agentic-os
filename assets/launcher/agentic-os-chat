@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Abre o chat do Agentic OS (pi) restrito às ferramentas os_*.
+set -euo pipefail
+cd "$HOME"
+PI_BIN="$(command -v pi || true)"
+[ -n "$PI_BIN" ] || PI_BIN="$HOME/.local/bin/pi"
+PROMPT="$HOME/.config/agenticos/system-prompt.md"
+args=(-nbt -t 'os_*')
+[ -f "$PROMPT" ] && args+=(--append-system-prompt "$PROMPT")
+exec "$PI_BIN" "${args[@]}" "$@"

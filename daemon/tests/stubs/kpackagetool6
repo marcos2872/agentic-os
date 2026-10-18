@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Stub de kpackagetool6 para testes (estado em $AGENTICOS_STUB_STATE)."""
+import json
+import os
+import sys
+
+args = sys.argv[1:]
+state = os.environ.get("AGENTICOS_STUB_STATE", ".")
+log = os.environ.get("AGENTICOS_STUB_LOG")
+if log:
+    with open(log, "a", encoding="utf-8") as handle:
+        handle.write("kpackagetool6 " + " ".join(args) + "\n")
+
+installed_file = os.path.join(state, "kpt_installed_ids")
+
+
+def load():
+    if os.path.exists(installed_file):
+        with open(installed_file, encoding="utf-8") as handle:
+            return [line.strip() for line in handle if line.strip()]
+    return []
+
+
+def save(items):
+    with open(installed_file, "w", encoding="utf-8") as handle:
+        handle.write("\n".join(items) + ("\n" if items else ""))
+
+
+def value_after(flag):
+    try:
+        return args[args.index(flag) + 1]
+    except (ValueError, IndexError):
+        return None
+
+
+if "--list" in args:
+    for item in load():
+        print(item)
+    sys.exit(0)
+
+target = value_after("-i") or value_after("-u")
+if target:
+    try:
+        with open(os.path.join(target, "metadata.json"), encoding="utf-8") as handle:
+            meta = json.load(handle)
+        widget_id = meta["KPlugin"]["Id"]
+    except Exception as exc:  # noqa: BLE001
+        print(f"metadata inválido: {exc}", file=sys.stderr)
+        sys.exit(1)
+    items = load()
+    if widget_id not in items:
+        items.append(widget_id)
+    save(items)
+    sys.exit(0)
+
+widget_id = value_after("-r")
+if widget_id:
+    save([item for item in load() if item != widget_id])
+sys.exit(0)

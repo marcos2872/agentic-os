@@ -1,0 +1,5 @@
+#!/usr/bin/env python3
+"""Stub de kbuildsycoca6 para testes."""
+import sys
+
+sys.exit(0)

@@ -1,0 +1,15 @@
+{
+  "name": "agentic-os",
+  "version": "0.1.0",
+  "description": "Agentic OS: ferramentas os_* que controlam o sistema via daemon com guardrails (verde/amarelo/vermelho, undo e auditoria).",
+  "license": "MIT",
+  "keywords": ["pi-package"],
+  "peerDependencies": {
+    "@earendil-works/pi-ai": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "pi": {
+    "extensions": ["./extensions/agentic-os.ts"]
+  }
+}

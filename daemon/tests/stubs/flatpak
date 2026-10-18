@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+"""Stub de flatpak para testes (nunca toca a rede)."""
+import os
+import sys
+
+args = sys.argv[1:]
+log = os.environ.get("AGENTICOS_STUB_LOG")
+if log:
+    with open(log, "a", encoding="utf-8") as handle:
+        handle.write("flatpak " + " ".join(args) + "\n")
+
+if args[:1] == ["search"]:
+    print("com.example.App\tExample App\tApp de exemplo\t1.0")
+elif args[:1] == ["list"]:
+    print("com.example.App\tExample App\t1.0\tflathub\tuser")
+elif args[:1] == ["remotes"]:
+    print("flathub")
+sys.exit(0)

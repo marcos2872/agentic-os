@@ -1,0 +1,10 @@
+#!/usr/bin/env python3
+"""Stub de notify-send para testes."""
+import os
+import sys
+
+log = os.environ.get("AGENTICOS_STUB_LOG")
+if log:
+    with open(log, "a", encoding="utf-8") as handle:
+        handle.write("notify-send " + " ".join(sys.argv[1:]) + "\n")
+sys.exit(0)

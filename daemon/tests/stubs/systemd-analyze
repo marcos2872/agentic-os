@@ -1,0 +1,9 @@
+#!/usr/bin/env python3
+"""Stub de systemd-analyze para testes."""
+import sys
+
+args = sys.argv[1:]
+if args[:1] == ["calendar"] and len(args) > 1 and args[1].strip():
+    print("Next elapse: Sun 2026-10-18 13:00:00 -03")
+    sys.exit(0)
+sys.exit(1)

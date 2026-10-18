@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+
+# Node (teste da extensão do pi)
+node_modules/
+package-lock.json
+
+# Editores
+*.swp
+.idea/
+.vscode/
