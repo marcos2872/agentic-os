@@ -9,7 +9,7 @@ import org.kde.plasma.plasmoid
 PlasmoidItem {
     id: root
 
-    Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
+    preferredRepresentation: fullRepresentation
 
     Layout.preferredWidth: 380
     Layout.preferredHeight: 320
