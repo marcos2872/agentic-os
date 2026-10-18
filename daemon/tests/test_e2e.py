@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 import subprocess
 import sys
@@ -340,6 +341,68 @@ class E2ETest(unittest.TestCase):
         self.assertTrue(read["ok"], read)
         self.assertTrue(read["result"]["truncated"])
         self.assertEqual(len(read["result"]["content"]), 64 * 1024)
+
+    # ------------------------------------------------- criação de widgets
+    def test_widget_criacao_pelo_agente(self) -> None:
+        created = self.h.call(
+            "widget.scaffold", {"name": "meu-widget", "description": "Mostra o horário"}
+        )
+        self.assertTrue(created["ok"], created)
+        workspace = Path(created["result"]["path"])
+        self.assertTrue((workspace / "metadata.json").is_file())
+        self.assertTrue((workspace / "contents/ui/main.qml").is_file())
+        meta = json.loads((workspace / "metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual(meta["KPlugin"]["Id"], "com.agenticos.meu-widget")
+
+        qml = "import QtQuick\nItem {}\n"
+        written = self.h.call(
+            "widget.write_file", {"name": "meu-widget", "path": "contents/ui/main.qml", "content": qml}
+        )
+        self.assertTrue(written["ok"], written)
+        read = self.h.call("widget.read_file", {"name": "meu-widget"})
+        self.assertEqual(read["result"]["content"], qml)
+
+        lint = self.h.call("widget.lint", {"name": "meu-widget"})
+        self.assertTrue(lint["ok"], lint)
+
+        install = self.h.call("widget.install", {"path": str(workspace)})
+        self.assertTrue(install["ok"], install)
+        self.assertEqual(install["result"]["installed"], "com.agenticos.meu-widget")
+
+        listed = self.h.call("widget.list")
+        self.assertIn("com.agenticos.meu-widget", [item["id"] for item in listed["result"]["widgets"]])
+        self.assertIn("meu-widget", [item["name"] for item in listed["result"]["workspace"]])
+
+    def test_widget_workspace_guardas_e_undo(self) -> None:
+        self.h.call("widget.scaffold", {"name": "esc"})
+        for bad_path in ("../fora.qml", "/tmp/fora.qml"):
+            bad = self.h.call("widget.write_file", {"name": "esc", "path": bad_path, "content": "x"})
+            self.assertFalse(bad["ok"], bad_path)
+        bad_name = self.h.call("widget.scaffold", {"name": "Maiusculo!"})
+        self.assertFalse(bad_name["ok"])
+        missing = self.h.call("widget.write_file", {"name": "nao-existe", "path": "a.txt", "content": "x"})
+        self.assertFalse(missing["ok"])
+
+        self.h.call("widget.write_file", {"name": "esc", "path": "notas.txt", "content": "a"})
+        second = self.h.call("widget.write_file", {"name": "esc", "path": "notas.txt", "content": "b"})
+        self.assertTrue(second["ok"])
+        self.assertTrue(second["undo_id"])
+        undone = self.h.call("undo.last")
+        self.assertTrue(undone["ok"], undone)
+        read = self.h.call("widget.read_file", {"name": "esc", "path": "notas.txt"})
+        self.assertEqual(read["result"]["content"], "a")
+
+        self.h.call("undo.last")  # desfaz a criação do arquivo
+        missing = self.h.call("widget.read_file", {"name": "esc", "path": "notas.txt"})
+        self.assertFalse(missing["ok"])
+
+    def test_widget_scaffold_duplicado_e_workspace_remove(self) -> None:
+        self.h.call("widget.scaffold", {"name": "dup"})
+        again = self.h.call("widget.scaffold", {"name": "dup"})
+        self.assertFalse(again["ok"])
+        removed = self.h.call("widget.workspace_remove", {"name": "dup"})
+        self.assertTrue(removed["ok"], removed)
+        self.assertTrue(Path(removed["result"]["moved_to"]).is_dir())
 
 
 if __name__ == "__main__":

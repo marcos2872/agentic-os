@@ -324,9 +324,51 @@ const TOOLS: ToolSpec[] = [
 	{
 		name: "os_widget_list",
 		label: "Listar widgets",
-		description: "Lista os plasmoids instalados no usuário.",
+		description: "Lista os plasmoids instalados no usuário e os widgets em criação no workspace.",
 		action: "widget.list",
 		parameters: Type.Object({}),
+	},
+	{
+		name: "os_widget_create",
+		label: "Criar widget",
+		description:
+			"Cria o esqueleto de um widget (plasmoid) no workspace: metadata.json + contents/ui/main.qml. Depois use os_widget_write_file e os_widget_install.",
+		action: "widget.scaffold",
+		parameters: Type.Object({
+			name: Type.String({ description: "Nome curto (a-z, 0-9, hífen)." }),
+			description: Type.Optional(Type.String({ description: "Descrição mostrada no Plasma (até 120 chars)." })),
+		}),
+	},
+	{
+		name: "os_widget_write_file",
+		label: "Escrever arquivo do widget",
+		description:
+			"Escreve/atualiza um arquivo dentro do workspace do widget (ex.: contents/ui/main.qml). Até 128 KiB; reversível com os_undo.",
+		action: "widget.write_file",
+		parameters: Type.Object({
+			name: Type.String({ description: "Nome do widget no workspace." }),
+			path: Type.String({ description: "Caminho relativo (ex.: contents/ui/main.qml)." }),
+			content: Type.String({ description: "Conteúdo completo do arquivo." }),
+		}),
+	},
+	{
+		name: "os_widget_read_file",
+		label: "Ler arquivo do widget",
+		description: "Lê um arquivo do workspace do widget (padrão: contents/ui/main.qml).",
+		action: "widget.read_file",
+		parameters: Type.Object({
+			name: Type.String({ description: "Nome do widget no workspace." }),
+			path: Type.Optional(Type.String({ description: "Caminho relativo (padrão: contents/ui/main.qml)." })),
+		}),
+	},
+	{
+		name: "os_widget_lint",
+		label: "Validar widget",
+		description: "Valida o metadata.json e roda qmllint nos QML do widget; use antes de instalar.",
+		action: "widget.lint",
+		parameters: Type.Object({
+			name: Type.String({ description: "Nome do widget no workspace." }),
+		}),
 	},
 	{
 		name: "os_widget_install",

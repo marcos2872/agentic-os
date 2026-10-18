@@ -145,6 +145,49 @@ SPEC: dict[str, dict[str, Any]] = {
         "summary": "Remove um plasmoid instalado no usuário.",
         "params": {"id": _param("string", "ID do plasmoid (ex.: com.agenticos.appcarousel).", required=True)},
     },
+    "widget.scaffold": {
+        "risk": GREEN,
+        "summary": "Cria esqueleto de um widget no workspace (~/.local/share/agenticos/workspace).",
+        "params": {
+            "name": _param("string", "Nome curto (a-z, 0-9, hífen).", required=True),
+            "description": _param("string", "Descrição mostrada no Plasma (até 120 chars)."),
+        },
+    },
+    "widget.write_file": {
+        "risk": GREEN,
+        "summary": "Escreve arquivo dentro do workspace de um widget (com backup/undo).",
+        "params": {
+            "name": _param("string", "Nome do widget no workspace.", required=True),
+            "path": _param("string", "Caminho relativo (ex.: contents/ui/main.qml).", required=True),
+            "content": _param("string", "Conteúdo do arquivo (até 128 KiB).", required=True),
+        },
+    },
+    "widget.read_file": {
+        "risk": GREEN,
+        "summary": "Lê arquivo do workspace de um widget.",
+        "params": {
+            "name": _param("string", "Nome do widget no workspace.", required=True),
+            "path": _param("string", "Caminho relativo (padrão: contents/ui/main.qml)."),
+        },
+    },
+    "widget.delete_file": {
+        "risk": GREEN,
+        "summary": "Remove arquivo do workspace de um widget (com undo).",
+        "params": {
+            "name": _param("string", "Nome do widget no workspace.", required=True),
+            "path": _param("string", "Caminho relativo.", required=True),
+        },
+    },
+    "widget.lint": {
+        "risk": GREEN,
+        "summary": "Valida metadata.json e passa qmllint nos QML do widget.",
+        "params": {"name": _param("string", "Nome do widget no workspace.", required=True)},
+    },
+    "widget.workspace_remove": {
+        "risk": GREEN,
+        "summary": "Remove o workspace de um widget (conteúdo vai para backups).",
+        "params": {"name": _param("string", "Nome do widget no workspace.", required=True)},
+    },
     "service.user": {
         "risk": GREEN,
         "summary": "Controla um serviço systemd --user (enable/disable/start/stop/restart/status).",
@@ -234,6 +277,8 @@ READ_ONLY = {
     "apps.list",
     "kwin.list_rules",
     "widget.list",
+    "widget.read_file",
+    "widget.lint",
     "service.user_failed",
     "routine.list",
     "config.get",
@@ -270,6 +315,10 @@ TOOL_NAMES: dict[str, str] = {
     "os_kwin_rule_add": "kwin.add_rule",
     "os_kwin_rule_remove": "kwin.remove_rule",
     "os_widget_list": "widget.list",
+    "os_widget_create": "widget.scaffold",
+    "os_widget_write_file": "widget.write_file",
+    "os_widget_read_file": "widget.read_file",
+    "os_widget_lint": "widget.lint",
     "os_widget_install": "widget.install",
     "os_widget_remove": "widget.remove",
     "os_service_user": "service.user",

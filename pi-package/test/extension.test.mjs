@@ -92,9 +92,13 @@ const expected = [
 	"os_system_info",
 	"os_theme_preset",
 	"os_undo",
+	"os_widget_create",
 	"os_widget_install",
+	"os_widget_lint",
 	"os_widget_list",
+	"os_widget_read_file",
 	"os_widget_remove",
+	"os_widget_write_file",
 ].sort();
 assert.deepEqual([...tools.keys()].sort(), expected, "tools registradas divergem do contrato");
 
