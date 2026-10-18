@@ -12,8 +12,18 @@
  *  - AGENTICOS_CTL: caminho do CLI (padrão: `agenticctl` no PATH);
  *  - AGENTICOS_AUTO_CONFIRM=1: confirma ações amarelas sem perguntar
  *    (apenas para testes automatizados);
- *  - AGENTICOS_ALLOW_BUILTIN=1: permite bash/edit/write do pi (padrão:
- *    bloqueados, para o agente mudar o sistema só via os_*).
+ *  - AGENTICOS_ALLOW_BUILTIN=1: modo confiança — libera bash/write/edit sem
+ *    confirmação nenhuma (inclui padrões destrutivos). Use por sua conta.
+ *
+ * Ferramentas builtin (bash/write/edit/powershell):
+ *  - Por padrão ficam ativas mas PASSAM por confirmação a cada uso (a UI do
+ *    pi pergunta antes de executar). Sem UI, são bloqueadas (falha segura).
+ *  - Mesmo confirmadas, padrões catastróficos em bash (sudo/pkexec, mexer na
+ *    base do sistema, disco/partição, /etc crítico, rm em raiz/home) são
+ *    bloqueados — para isso existe o modo confiança.
+ *  - Escritas fora de $HOME, /tmp e /var/tmp são bloqueadas.
+ *  - As ferramentas os_* continuam sendo o caminho preferido: têm auditoria,
+ *    undo e o modelo de risco verde/amarelo/vermelho do daemon.
  */
 
 import { spawn } from "node:child_process";
@@ -505,20 +515,99 @@ export default function (pi: ExtensionAPI) {
 		);
 	}
 
-	// Guardrail: sem bash/edit/write — mudanças passam só pelo daemon.
-	pi.on("tool_call", async (event) => {
-		if (process.env.AGENTICOS_ALLOW_BUILTIN === "1") {
+	// Guardrail das ferramentas builtin (bash/write/edit/powershell):
+	// confirmação por uso + bloqueio de padrões catastróficos.
+	pi.on("tool_call", async (event, ctx) => {
+		if (!BUILTIN_GATE.has(event.toolName)) {
 			return undefined;
 		}
-		const blocked = new Set(["bash", "powershell", "edit", "write"]);
-		if (blocked.has(event.toolName)) {
+		if (process.env.AGENTICOS_ALLOW_BUILTIN === "1") {
+			return undefined; // modo confiança
+		}
+
+		const input = (event.input ?? {}) as Record<string, unknown>;
+
+		if (event.toolName === "bash" || event.toolName === "powershell") {
+			const command = String(input.command ?? "");
+			for (const rule of RED_COMMANDS) {
+				if (rule.re.test(command)) {
+					return {
+						block: true,
+						reason:
+							`Agentic OS: comando bloqueado por segurança (${rule.why}). ` +
+							"Se for realmente necessário, execute manualmente no terminal ou libere " +
+							"o modo confiança (AGENTICOS_ALLOW_BUILTIN=1).",
+					};
+				}
+			}
+			return confirmBuiltin(ctx, `Rodar este comando no terminal?\n\n${command}`);
+		}
+
+		const path = findPath(input);
+		if (path && !pathAllowed(path)) {
 			return {
 				block: true,
 				reason:
-					"Agentic OS: use as ferramentas os_* (daemon com guardrails) em vez de shell/edição direta. " +
-					"Para liberar o builtin, defina AGENTICOS_ALLOW_BUILTIN=1.",
+					`Agentic OS: escrever fora de $HOME, /tmp ou /var/tmp não é permitido (${path}). ` +
+					"Use o modo confiança somente se souber o que está fazendo.",
 			};
 		}
-		return undefined;
+		return confirmBuiltin(ctx, `Gravar arquivo com ${event.toolName}?\n\n${path ?? "(caminho não identificado)"}`);
 	});
+}
+
+// ------------------------------------------------------- guardrail (builtin)
+
+const BUILTIN_GATE = new Set(["bash", "powershell", "edit", "write"]);
+
+const RED_COMMANDS: Array<{ re: RegExp; why: string }> = [
+	{ re: /(^|[;&|(]\s*)(sudo|doas|pkexec)\b/i, why: "escalada de privilégio" },
+	{ re: /\b(mkfs\.?\w*|fdisk|parted|wipefs|blkdiscard)\b/i, why: "operação em disco/partição" },
+	{ re: /\bdd\b[^\n]*\bof=\s*\/dev\//i, why: "escrita direta em dispositivo" },
+	{ re: /\brm\s+(-[A-Za-z]+\s+)*(\/+|~|\$HOME|\.)\s*($|[;&|])/i, why: "remoção de raiz/home" },
+	{
+		re: /\b(rpm-ostree|dnf|rpm)\s+(install|remove|erase|update|upgrade|override|distro-sync)\b/i,
+		why: "alteração na base do sistema",
+	},
+	{ re: /\/etc\/(pam\.d|shadow|gshadow|sudoers|fstab)/, why: "arquivo crítico do sistema" },
+	{ re: /\/boot\//, why: "área de boot" },
+];
+
+function findPath(input: Record<string, unknown>): string | null {
+	for (const key of ["file_path", "path", "file", "filename"]) {
+		const value = input[key];
+		if (typeof value === "string" && value.trim()) {
+			return value.trim();
+		}
+	}
+	return null;
+}
+
+function pathAllowed(raw: string): boolean {
+	if (raw.includes("..")) {
+		return false;
+	}
+	if (!raw.startsWith("/")) {
+		return true; // relativo: resolve dentro do diretório de trabalho
+	}
+	const home = process.env.HOME ?? "";
+	const roots = [home && `${home}/`, "/tmp/", "/var/tmp/"].filter(Boolean);
+	return roots.some((root) => raw === root.slice(0, -1) || raw.startsWith(root));
+}
+
+async function confirmBuiltin(ctx: any, message: string): Promise<{ block: boolean; reason: string } | undefined> {
+	const ui = ctx?.ui;
+	if (!ctx?.hasUI || !ui?.select) {
+		return {
+			block: true,
+			reason:
+				"Agentic OS: sem UI para confirmar o uso de ferramentas de terminal/escrita. " +
+				"Defina AGENTICOS_ALLOW_BUILTIN=1 para permitir sem confirmação.",
+		};
+	}
+	const choice = await ui.select(`${message}\n\n(Agentic OS)`, ["Permitir", "Não"]);
+	if (choice !== "Permitir") {
+		return { block: true, reason: "Agentic OS: ação negada pelo usuário" };
+	}
+	return undefined;
 }

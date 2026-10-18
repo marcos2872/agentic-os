@@ -69,12 +69,13 @@ rm -f "$HOME/.pi/agent/extensions/agentic-os.ts"
 rm -rf "$HOME/.pi/agent/skills"/agenticos-*
 log_ok "extension e skills do pi removidas (~/.pi/agent)"
 
-# 5) Atalho de menu.
-rm -f "$HOME/.local/share/applications/agentic-os.desktop"
+# 5) Atalhos de menu.
+rm -f "$HOME/.local/share/applications/agentic-os.desktop" \
+      "$HOME/.local/share/applications/agentic-os-trust.desktop"
 if have kbuildsycoca6; then
   kbuildsycoca6 >/dev/null 2>&1 || log_warn "kbuildsycoca6 falhou (sem sessão gráfica?)"
 fi
-log_ok "atalho removido do menu"
+log_ok "atalhos removidos do menu"
 
 # 6) Config e dados.
 if (( KEEP_CONFIG == 1 )); then

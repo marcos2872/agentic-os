@@ -296,8 +296,11 @@ log_done "assets do daemon copiados para $ASSETS_DIR"
 run cp "$REPO_DIR/assets/launcher/agentic-os-chat" "$BIN_DIR/agentic-os-chat"
 run chmod +x "$BIN_DIR/agentic-os-chat"
 run mkdir -p "$HOME/.local/share/applications"
-run cp "$REPO_DIR/assets/launcher/agentic-os.desktop" "$HOME/.local/share/applications/agentic-os.desktop"
-log_done "launcher instalado: $BIN_DIR/agentic-os-chat + atalho no menu"
+for desktop_file in "$REPO_DIR"/assets/launcher/*.desktop; do
+  [[ -f $desktop_file ]] || continue
+  run cp "$desktop_file" "$HOME/.local/share/applications/"
+done
+log_done "launcher instalado: $BIN_DIR/agentic-os-chat + atalhos no menu"
 
 if have kbuildsycoca6; then
   if [[ $DRY_RUN -eq 1 ]]; then

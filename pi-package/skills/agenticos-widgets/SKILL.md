@@ -13,18 +13,21 @@ e instala em `~/.local/share/plasma/plasmoids` (camada do usuário, sem root).
 ## Criar um widget novo
 
 1. **Entenda o pedido**: o que mostra, tamanho aproximado e de onde vêm os dados.
-   Sem shell e sem rede: o widget é QML/JavaScript puro (pode usar APIs do Plasma,
-   `Date`, timers etc.).
+   O widget em si roda QML/JavaScript puro (sem shell e sem rede no runtime), mas
+   você pode usar `bash` para testar/empacotar (cada comando pede confirmação).
 2. **Esqueleto**: `os_widget_create name=<slug> description="<descrição curta>"`
    → cria `metadata.json` e `contents/ui/main.qml` e devolve o `path`.
-3. **Edite o QML**: `os_widget_write_file name=<slug> path=contents/ui/main.qml
-   content=<arquivo COMPLETO>` — não é patch: mande o arquivo inteiro (até 128 KiB).
+3. **Edite o QML**: prefira `os_widget_write_file name=<slug>
+   path=contents/ui/main.qml content=<arquivo COMPLETO>` (tem undo). Alternativamente,
+   `write`/`edit` direto no arquivo do workspace (confirmação por uso, sem undo).
    Consulte `references/plasmoid-anatomy.md` (estrutura mínima, imports, dicas).
-4. **Valide**: `os_widget_lint name=<slug>` → se houver problemas, corrija e repita.
+4. **Valide**: `os_widget_lint name=<slug>` (ou `qmllint` via bash); corrija e repita.
    Use `os_widget_read_file` para conferir o conteúdo atual.
 5. **Instale**: `os_widget_install path=<path devolvido no passo 2>` (verde; undo remove).
-6. **Oriente o usuário**: botão direito na área de trabalho → "Adicionar widgets" →
-   buscar pelo nome. (O agente ainda não adiciona o widget à área de trabalho sozinho.)
+6. **Teste com o usuário**: `plasmoidviewer -a com.agenticos.<slug>` abre uma
+   pré-visualização na sessão (peça para ele olhar), ou oriente: botão direito na área
+   de trabalho → "Adicionar widgets" → buscar pelo nome. (O agente ainda não adiciona
+   o widget à área de trabalho sozinho.)
 
 ## Atualizar um widget que já existe
 

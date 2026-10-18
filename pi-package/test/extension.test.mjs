@@ -148,16 +148,49 @@ const greenCtx = { hasUI: true, ui: { confirm: async () => true } };
 	assert.match(result.content[0].text, /truncado/);
 }
 
-// ------------------------------------------------------- guardrail builtin
+// --------------------------------------------- guardrail dos builtins
 {
 	const hook = handlers["tool_call"];
 	assert.equal(typeof hook, "function", "hook tool_call deve estar registrado");
-	const bash = await hook({ toolName: "bash", input: { command: "rm -rf /" } }, {});
-	assert.equal(bash.block, true);
-	const write = await hook({ toolName: "write", input: {} }, {});
-	assert.equal(write.block, true);
-	const read = await hook({ toolName: "read", input: {} }, {});
+
+	// sem UI → bloqueia (falha segura)
+	const noUi = await hook({ toolName: "bash", input: { command: "ls" } }, { hasUI: false, ui: {} });
+	assert.equal(noUi.block, true);
+
+	// com UI e usuário permitindo → libera
+	const allowCtx = { hasUI: true, ui: { select: async () => "Permitir" } };
+	const permitted = await hook({ toolName: "bash", input: { command: "ls -la" } }, allowCtx);
+	assert.equal(permitted, undefined);
+
+	// com UI e usuário negando → bloqueia
+	const denyCtx = { hasUI: true, ui: { select: async () => "Não" } };
+	const denied = await hook(
+		{ toolName: "write", input: { path: `${process.env.HOME}/nota.txt` } },
+		denyCtx,
+	);
+	assert.equal(denied.block, true);
+
+	// comandos catastróficos ficam bloqueados mesmo com o usuário permitindo
+	const redSudo = await hook({ toolName: "bash", input: { command: "sudo rm -rf /" } }, allowCtx);
+	assert.equal(redSudo.block, true);
+	const redBase = await hook({ toolName: "bash", input: { command: "rpm-ostree install foo" } }, allowCtx);
+	assert.equal(redBase.block, true);
+	const redDisk = await hook({ toolName: "bash", input: { command: "dd if=/dev/zero of=/dev/sda" } }, allowCtx);
+	assert.equal(redDisk.block, true);
+
+	// escrita fora de $HOME/tmp é bloqueada
+	const outside = await hook({ toolName: "write", input: { file_path: "/etc/passwd" } }, allowCtx);
+	assert.equal(outside.block, true);
+
+	// read não passa por confirmação
+	const read = await hook({ toolName: "read", input: { path: "/etc/hostname" } }, {});
 	assert.equal(read, undefined);
+
+	// modo confiança libera tudo (inclusive padrões bloqueados)
+	process.env.AGENTICOS_ALLOW_BUILTIN = "1";
+	const trusted = await hook({ toolName: "bash", input: { command: "sudo true" } }, { hasUI: false, ui: {} });
+	assert.equal(trusted, undefined);
+	delete process.env.AGENTICOS_ALLOW_BUILTIN;
 }
 
 // ------------------------------------------------------- daemon indisponível

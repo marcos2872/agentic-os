@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
-# Abre o chat do Agentic OS (pi) restrito às ferramentas os_*.
+# Abre o chat do Agentic OS (pi).
+#
+# Ferramentas ativas: as os_* (daemon com auditoria/undo) + builtins
+# guardados (read/bash/edit/write/grep/find/ls) — cada uso de
+# terminal/escrita pede confirmação no chat.
+#
+#   agentic-os-chat            # modo guardado (confirma cada comando)
+#   agentic-os-chat --trust    # modo confiança (sem confirmações)
 set -euo pipefail
 cd "$HOME"
+
+if [[ ${1:-} == "--trust" ]]; then
+  export AGENTICOS_ALLOW_BUILTIN=1
+  shift
+fi
+
 PI_BIN="$(command -v pi || true)"
 [ -n "$PI_BIN" ] || PI_BIN="$HOME/.local/bin/pi"
 PROMPT="$HOME/.config/agenticos/system-prompt.md"
-args=(-nbt -t 'os_*')
+args=(-t 'os_*,read,bash,edit,write,grep,find,ls')
 [ -f "$PROMPT" ] && args+=(--append-system-prompt "$PROMPT")
 exec "$PI_BIN" "${args[@]}" "$@"

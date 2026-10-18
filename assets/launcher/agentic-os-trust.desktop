@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Agentic OS (modo confiança)
+Comment=Chat de IA sem confirmação para terminal/escrita (use com cuidado)
+Exec=agentic-os-chat --trust
+Icon=utilities-terminal
+Terminal=true
+Categories=System;Utility;TerminalEmulator;
+StartupNotify=true
