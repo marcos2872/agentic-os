@@ -45,14 +45,13 @@ setup/vm-create.sh --iso ~/Downloads/Fedora-Kinoite-44-*.iso
 Dentro da VM, depois de instalar o Fedora normalmente:
 
 ```bash
-git clone <url-deste-repo> && cd agentic_os
+git clone https://github.com/marcos2872/agentic-os.git && cd agentic-os
 ./setup/install.sh            # idempotente; --dry-run para simular, --no-ui para pular tema/KWin
 ```
 
-> **Sem remote no Git?** Para levar este repositório para dentro da VM, publique-o
-> num remote e clone, use `scp -r` (com o `sshd` da VM habilitado) ou, com a VM
-> desligada, `sudo virt-copy-in -a /var/lib/libvirt/images/agentic-os-vm.qcow2 \
-> /tmp/agentic_os.tar.gz /home/<usuario-na-vm>/` e extraia dentro da VM.
+> **Alternativas** (fork offline, VM sem rede): use `scp -r` com o `sshd` da VM
+> habilitado ou, com a VM desligada, `sudo virt-copy-in -a /var/lib/libvirt/images/agentic-os-vm.qcow2 \
+> /tmp/agentic_os.tar.gz /home/<usuario-na-vm>/` e extraia dentro dela.
 
 Depois:
 
