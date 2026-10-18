@@ -7,6 +7,9 @@ cd "$(dirname "$0")"
 PKGS="${PI_EXT_TEST_DIR:-/tmp/opencode/pi-ext-test}"
 mkdir -p "$PKGS"
 
+echo "[test] validando skills"
+node check-skills.mjs
+
 if [ ! -d "$PKGS/node_modules/jiti" ] || [ ! -d "$PKGS/node_modules/@earendil-works/pi-coding-agent" ]; then
   echo "[test] instalando @earendil-works/pi-coding-agent em $PKGS (primeira vez)"
   (cd "$PKGS" && npm install --no-save --no-audit --no-fund @earendil-works/pi-coding-agent@latest >/dev/null)

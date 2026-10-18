@@ -64,9 +64,10 @@ rm -rf "$HOME/.local/lib/agenticos"
 rm -f "$BIN_DIR/agenticd" "$BIN_DIR/agenticctl" "$BIN_DIR/agentic-os-chat"
 log_ok "daemon e wrappers removidos"
 
-# 4) Extension do pi.
+# 4) Extension e skills do pi.
 rm -f "$HOME/.pi/agent/extensions/agentic-os.ts"
-log_ok "extension do pi removida (~/.pi/agent/extensions/agentic-os.ts)"
+rm -rf "$HOME/.pi/agent/skills"/agenticos-*
+log_ok "extension e skills do pi removidas (~/.pi/agent)"
 
 # 5) Atalho de menu.
 rm -f "$HOME/.local/share/applications/agentic-os.desktop"

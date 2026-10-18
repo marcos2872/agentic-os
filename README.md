@@ -27,10 +27,28 @@ Chat (pi, TUI)  ──tools os_*──▶  agenticctl ──socket Unix──▶
 | Caminho | O que é |
 |---|---|
 | `daemon/` | pacote Python do daemon (`agenticd`) e do CLI (`agenticctl`) + testes |
-| `pi-package/` | extensão do pi com as tools `os_*` (+ teste funcional) |
+| `pi-package/` | extensão do pi com as tools `os_*` e as skills `agenticos-*` |
 | `assets/` | system prompt do chat, regra KWin de transparência, launcher |
 | `setup/` | `install.sh`, `uninstall.sh` e `vm-create.sh` |
 | `prototypes/` | plasmoids de protótipo (inline confirm, app carousel) |
+
+## Skills e system prompt
+
+O pacote do pi traz **skills** (formato Agent Skills) que o modelo carrega sob demanda —
+cada uma ensina um fluxo completo com as ferramentas `os_*`:
+
+| Skill | Para quê |
+|---|---|
+| `agenticos-operacao` | roteamento geral, risco, confirmação, undo e auditoria |
+| `agenticos-apps` | instalar/remover/abrir aplicativos (Flatpak, .desktop) |
+| `agenticos-temas` | tema, cores, papel de parede, transparência e regras do KWin |
+| `agenticos-widgets` | criar/editar/validar/instalar widgets (plasmoids) pelo chat |
+| `agenticos-rotinas` | rotinas agendadas (timers systemd --user) |
+| `agenticos-configs` | configurações em `~/.config` com backup e undo |
+
+Elas são instaladas em `~/.pi/agent/skills/` e anunciadas automaticamente; o usuário
+também pode forçar uma com `/skill:agenticos-widgets`. O system prompt
+(`assets/system-prompt.md`) é injetado pelo launcher em todo chat do Agentic OS.
 
 ## Testar numa VM (fluxo rápido)
 
@@ -62,6 +80,7 @@ Depois:
    - “como está o sistema?”
    - “instale o Brave via flatpak”
    - “deixe o tema escuro com transparência” *(ação amarela: confirme no chat)*
+   - “crie um widget que mostra a hora atual e instale” *(o agente escreve o QML direto)*
    - “crie uma rotina para atualizar os flatpaks todo domingo às 10h”
    - “liste as regras do KWin” / “desfaça a última ação”
 
@@ -101,6 +120,8 @@ os nomes em `pi-package/extensions/agentic-os.ts` têm que bater com
   confirmação e podem falhar sem agente polkit.
 - Chat = TUI do pi no Konsole; web UI/chat QML nativo e tema “glass” ficam para as
   próximas fases.
+- O agente cria e instala widgets, mas ainda não os adiciona à área de trabalho
+  sozinho (o usuário adiciona pelo Plasma após a instalação).
 - `plasma.set_wallpaper` não tem undo; `widget.install` que atualiza um plasmoid
   existente não é reversível.
 

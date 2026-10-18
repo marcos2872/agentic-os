@@ -10,6 +10,7 @@
     "typebox": "*"
   },
   "pi": {
-    "extensions": ["./extensions/agentic-os.ts"]
+    "extensions": ["./extensions/agentic-os.ts"],
+    "skills": ["./skills"]
   }
 }

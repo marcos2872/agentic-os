@@ -265,6 +265,26 @@ else
   log_warn "extension não encontrada ($EXT_SRC); pulando (gere pi-package/ e rode de novo)"
 fi
 
+# ---------------------------------------------------------------- skills do pi
+SKILLS_SRC="$REPO_DIR/pi-package/skills"
+SKILLS_DST="$HOME/.pi/agent/skills"
+if [[ -d $SKILLS_SRC ]]; then
+  run mkdir -p "$SKILLS_DST"
+  if [[ $DRY_RUN -eq 1 ]]; then
+    printf '  [dry-run] limpar skills agenticos-* antigas em %s\n' "$SKILLS_DST"
+  else
+    rm -rf "$SKILLS_DST"/agenticos-*
+  fi
+  for skill_dir in "$SKILLS_SRC"/*/; do
+    [[ -d $skill_dir ]] || continue
+    skill_name="$(basename "$skill_dir")"
+    run cp -r "$skill_dir" "$SKILLS_DST/$skill_name"
+    log_done "skill $skill_name instalada"
+  done
+else
+  log_warn "skills não encontradas em $SKILLS_SRC; pulando"
+fi
+
 # ---------------------------------------------------------------- assets
 run cp "$REPO_DIR/assets/system-prompt.md" "$CFG_DIR/system-prompt.md"
 log_done "system prompt copiado para $CFG_DIR/system-prompt.md"
